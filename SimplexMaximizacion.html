@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Método Simplex - Maximización</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background: #f0f0f5;
+    margin: 0;
+  }
+  header {
+    background-color: #6a4baf; /* morado */
+    color: white;
+    padding: 15px 20px;
+    font-size: 24px;
+    font-weight: bold;
+  }
+  nav {
+      background-color: #741caf;
+      padding: 10px 20px;
+      border-radius: 5px;
+      margin-bottom: 20px;
+    }
+  nav ul {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      gap: 15px;
+    }
+  nav ul li {
+      display: inline;
+    }
+  nav ul li a {
+      color: white;
+      text-decoration: none;
+      font-weight: bold;
+      font-size: 16px;
+      transition: color 0.3s;
+    }
+  nav ul li a:hover {
+      color: #d7a9f8;
+    }
+  main {
+    padding: 20px;
+    max-width: 900px;
+    margin: auto;
+  }
+  label {
+    font-weight: bold;
+    color: #6a4baf;
+  }
+  input[type="number"] {
+    width: 60px;
+    margin: 0 5px 10px 0;
+    padding: 4px;
+    border: 1px solid #bbb;
+    border-radius: 4px;
+  }
+  select {
+    padding: 4px;
+    margin: 0 10px 10px 0;
+  }
+  button {
+    background-color: #6a4baf;
+    border: none;
+    color: white;
+    font-weight: bold;
+    padding: 6px 12px;
+    margin: 5px;
+    cursor: pointer;
+    border-radius: 4px;
+    font-size: 18px;
+    user-select: none;
+  }
+  button:hover {
+    background-color: #5a3d97;
+  }
+  .matrix {
+    border-collapse: collapse;
+    margin: 10px 0;
+  }
+  .matrix td {
+    border: 1px solid #999;
+    padding: 5px 8px;
+    text-align: right;
+    font-family: monospace;
+  }
+  .pivote {
+    background-color: #d1c4e9; /* morado claro */
+    font-weight: bold;
+    color: #3f1d91;
+  }
+  #resultado {
+    white-space: pre-wrap;
+    background: #fff;
+    padding: 15px;
+    border: 2px solid #6a4baf;
+    border-radius: 8px;
+    margin-top: 20px;
+    font-family: monospace;
+    max-height: 400px;
+    overflow-y: auto;
+  }
+  .seccion {
+    margin-bottom: 25px;
+    background: white;
+    border-radius: 8px;
+    padding: 15px;
+    box-shadow: 0 0 6px #ccc;
+  }
+  .flex-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 5px;
+  }
+  .flex-row > label {
+    margin-right: 10px;
+  }
+</style>
+</head>
+<body>
+  <nav>
+    <ul>
+      <li><a href="inicio.html">Inicio</a></li>
+      <li><a href="Menu.html">Menú</a></li>
+      <li><a href="MetodoGrafico.html">Método Gráfico</a></li>
+      <li><a href="SimplexMinimizacion.html">Método simplex minimización</a></li>
+    </ul>
+  </nav>
+
+<main>
+  <div><h1>Método Simplex - Maximización</h1></div>
+  <div class="seccion">
+    <h3 style="color:#6a4baf;">Función Objetivo: Z = </h3>
+    <div id="funcionObjetivo" class="flex-row"></div>
+    <button type="button" onclick="agregarVariable()">➕ </button>
+    <button type="button" onclick="eliminarVariable()">➖ </button>
+  </div>
+
+  <div class="seccion">
+    <h3 style="color:#6a4baf;">Restricciones:</h3>
+    <div id="restricciones"></div>
+    <button type="button" onclick="agregarRestriccion()">➕</button>
+    <button type="button" onclick="eliminarRestriccion()">➖</button>
+  </div>
+
+  <button onclick="resolverMaximizacion()">Resolver</button>
+
+  <div id="resultado"></div>
+</main>
+
+<script src="simplexMax.js"></script>
+<script>
+  // Variables y restricciones iniciales
+  let numVariables = 3;
+  let numRestricciones = 3;
+
+  // Renderizar función objetivo con inputs
+  function renderFuncionObjetivo() {
+    const container = document.getElementById('funcionObjetivo');
+    container.innerHTML = '';
+    for (let i = 1; i <= numVariables; i++) {
+      const label = document.createElement('label');
+      label.textContent = `x${i} =`;
+      const input = document.createElement('input');
+      input.type = 'number';
+      input.id = `obj_x${i}`;
+      input.value = '0';
+      input.step = 'any';
+      container.appendChild(label);
+      container.appendChild(input);
+    }
+  }
+
+  // Renderizar restricciones
+  function renderRestricciones() {
+    const container = document.getElementById('restricciones');
+    container.innerHTML = '';
+    for (let i = 1; i <= numRestricciones; i++) {
+      const div = document.createElement('div');
+      div.classList.add('flex-row');
+      div.style.marginBottom = '8px';
+      div.id = `restriccion_${i}`;
+
+      // Coeficientes variables
+      for (let j = 1; j <= numVariables; j++) {
+        const input = document.createElement('input');
+        input.type = 'number';
+        input.id = `r${i}_x${j}`;
+        input.value = '0';
+        input.step = 'any';
+        input.style.width = '50px';
+        div.appendChild(input);
+
+        const label = document.createElement('label');
+        label.textContent = `x${j}`;
+        div.appendChild(label);
+      }
+
+      // Signo <= (solo <= para este ejemplo)
+      const select = document.createElement('select');
+      select.id = `r${i}_op`;
+      const option = document.createElement('option');
+      option.value = '<=';
+      option.textContent = '≤';
+      select.appendChild(option);
+      div.appendChild(select);
+
+      // Valor independiente (b)
+      const inputB = document.createElement('input');
+      inputB.type = 'number';
+      inputB.id = `r${i}_const`;
+      inputB.value = '0';
+      inputB.step = 'any';
+      inputB.style.width = '60px';
+      div.appendChild(inputB);
+
+      container.appendChild(div);
+    }
+  }
+
+  function agregarVariable() {
+    if (numVariables >= 6) return alert("Máximo 6 variables");
+    numVariables++;
+    renderFuncionObjetivo();
+    renderRestricciones();
+  }
+  function eliminarVariable() {
+    if (numVariables <= 1) return alert("Debe haber al menos 1 variable");
+    numVariables--;
+    renderFuncionObjetivo();
+    renderRestricciones();
+  }
+  function agregarRestriccion() {
+    if (numRestricciones >= 6) return alert("Máximo 6 restricciones");
+    numRestricciones++;
+    renderRestricciones();
+  }
+  function eliminarRestriccion() {
+    if (numRestricciones <= 1) return alert("Debe haber al menos 1 restricción");
+    numRestricciones--;
+    renderRestricciones();
+  }
+
+  // Inicializar todo al cargar la página
+  renderFuncionObjetivo();
+  renderRestricciones();
+</script>
+
+</body>
+</html>

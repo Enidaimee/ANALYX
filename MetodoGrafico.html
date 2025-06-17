@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Programación Lineal - Método Gráfico</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background: #ffffff;
+    }
+    h2 {
+      color: #000000;
+    }
+    textarea, input {
+      width: 100%;
+      margin-top: 10px;
+      padding: 10px;
+      font-size: 16px;
+    }
+    button {
+      margin-top: 15px;
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #8f22e8;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #5a09a1;
+    }
+    #resultado {
+      white-space: pre-wrap;
+      background: #fff;
+      padding: 15px;
+      margin-top: 20px;
+      border-radius: 5px;
+      border: 1px solid #f641f6;
+    }
+    canvas {
+      background-color: #fff;
+      border: 1px solid #9e32f7;
+      margin-top: 20px;
+    }
+
+    /*menú */
+    nav {
+      background-color: #7e14cb;
+      padding: 10px 20px;
+      border-radius: 5px;
+      margin-bottom: 20px;
+    }
+    nav ul {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      gap: 15px;
+    }
+    nav ul li {
+      display: inline;
+    }
+    nav ul li a {
+      color: white;
+      text-decoration: none;
+      font-weight: bold;
+      font-size: 16px;
+      transition: color 0.3s;
+    }
+    nav ul li a:hover {
+      color: #d7a9f8;
+    }
+    .linea {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+      margin: 10px 0;
+    }
+    .linea input[type="number"],
+    .linea select {
+      width: 70px;
+      padding: 8px;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      text-align: center;
+    }
+    .condicion {
+      margin-top: 15px;
+      font-weight: bold;
+      color: #6a1b9a;
+    }
+    .eliminar-btn {
+      background-color: #631fa2;
+      color: white;
+      border: none;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      display: inline-block;
+      width: auto; /* que solo abarque el contenido */
+    }
+    .eliminar-btn:hover {
+      background-color: #631fa2;
+    }
+    .agregar-btn {
+      background-color: #7b1fa2;
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      display: inline-block;
+      width: auto; /* Solo lo necesario para el texto */
+    }
+    .agregar-btn:hover {
+      background-color: #4a148c;
+    }
+
+  </style>
+</head>
+<body>
+
+  <!-- Menú de navegación -->
+  <nav>
+    <ul>
+      <li><a href="inicio.html">Inicio</a></li>
+      <li><a href="Menu.html">Menú</a></li>
+      <li><a href="SimplexMaximizacion.html">Método simplex maximización</a></li>
+      <li><a href="SimplexMinimizacion.html">Método simplex minimizacion</a></li>
+    </ul>
+  </nav>
+
+  <!-- Contenido principal -->
+  <h1>Calculadora - Método Gráfico</h1>
+
+  <label><strong>Función Objetivo:</strong></label>
+  <div class="linea">
+      Z =
+      <input type="number" id="obj_X" placeholder="" /> X +
+      <input type="number" id="obj_Y" placeholder="" /> Y
+    </div>
+
+  <div id="restricciones-container"></div>
+
+  <!-- Botón para agregar restricción -->
+  <button class="agregar-btn" onclick="agregarRestriccion()">Agregar Restricción</button>
+
+  <div class="condicion">X, Y ≥ 0</div>
+
+  <button onclick="calcular()">Calcular</button>
+
+  <div id="resultado">Resultado...</div>
+
+  <div id="detalles" style="white-space: pre-wrap; background: #e8e4fb; padding: 15px; margin-top: 10px; border-radius: 5px; border: 1px solid #8a2be2;">
+    Detalles de la solución...
+  </div>
+
+  <canvas id="grafico" width="600" height="400"></canvas>
+
+  <script>
+    let contadorRestricciones = 0;
+
+    function agregarRestriccion() {
+      contadorRestricciones++;
+      const container = document.getElementById('restricciones-container');
+
+      const nuevaRestriccion = document.createElement('div');
+      nuevaRestriccion.id = `restriccion_${contadorRestricciones}`;
+      nuevaRestriccion.innerHTML = `
+        <label>Restricción ${contadorRestricciones}:</label>
+        <div class="linea">
+          <input type="number" id="r${contadorRestricciones}_x" placeholder="" /> X +
+          <input type="number" id="r${contadorRestricciones}_y" placeholder="" /> Y
+          <select id="r${contadorRestricciones}_op">
+            <option value="<=">≤</option>
+            <option value=">=">≥</option>
+            <option value="=">=</option>
+          </select>
+          <input type="number" id="r${contadorRestricciones}_const" placeholder="Valor" />
+          <button type="button" class="eliminar-btn" onclick="eliminarRestriccion('restriccion_${contadorRestricciones}')">x</button>
+        </div>
+      `;
+      container.appendChild(nuevaRestriccion);
+    }
+
+    function eliminarRestriccion(id) {
+      const restriccion = document.getElementById(id);
+      if (restriccion) {
+        restriccion.remove();
+      }
+    }
+  </script>
+
+  <script src="Grafico.js"></script>
+</body>
+</html>

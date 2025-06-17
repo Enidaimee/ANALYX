@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Método Simplex - Minimización</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet" />
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/10.6.4/math.min.js"></script>
+
+  <style>
+    body {
+      font-family: 'Montserrat', sans-serif;
+      background: #f4f0fa;
+      color: #351361;
+      padding: 20px;
+    }
+    .container {
+      max-width: 1000px;
+      margin: auto;
+      background: white;
+      padding: 40px 30px;
+      border-radius: 12px;
+      box-shadow: 0 8px 20px rgba(60, 19, 97, 0.15);
+    }
+    h1 {
+      text-align: center;
+      color: #673e9e;
+      margin-bottom: 30px;
+    }
+    nav {
+      background-color: #a03affbb;
+      padding: 10px 20px;
+      border-radius: 5px;
+      margin-bottom: 20px;
+    }
+    nav ul {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      gap: 15px;
+    }
+    nav ul li {
+      display: inline;
+    }
+    nav ul li a {
+      color: white;
+      text-decoration: none;
+      font-weight: bold;
+      font-size: 16px;
+      transition: color 0.3s;
+    }
+    nav ul li a:hover {
+      color: #d7a9f8;
+    }
+    label {
+      font-weight: bold;
+      display: block;
+      margin-top: 20px;
+      color: #42148c;
+    }
+    input, textarea {
+      width: 100%;
+      padding: 10px;
+      font-size: 1rem;
+      margin-top: 8px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+    button {
+      background-color: #7b1fa2;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      margin-top: 20px;
+      font-size: 1rem;
+      border-radius: 8px;
+      cursor: pointer;
+      width: 100%;
+      max-width: 300px;
+      display: block;
+      margin-left: auto;
+      margin-right: auto;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background-color: #4a148c;
+    }
+    #resultado {
+      margin-top: 30px;
+      white-space: pre-wrap;
+      background: #f9f3fd;
+      padding: 20px;
+      border-radius: 10px;
+      border: 1px solid #d1c4e9;
+    }
+    footer {
+      text-align: center;
+      margin-top: 40px;
+      font-size: 0.9rem;
+      color: #9e9e9e;
+    }
+    .linea {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+      margin: 10px 0;
+    }
+    .linea input[type="number"],
+    .linea select {
+      width: 70px;
+      padding: 8px;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      text-align: center;
+    }
+    .condicion {
+      margin-top: 15px;
+      font-weight: bold;
+      color: #6a1b9a;
+    }
+    .eliminar-btn {
+      background-color: #631fa2;
+      color: white;
+      border: none;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      display: inline-block;
+      width: auto; /* que solo abarque el contenido */
+    }
+    .eliminar-btn:hover {
+      background-color: #631fa2;
+    }
+    .agregar-btn {
+      background-color: #7b1fa2;
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      display: inline-block;
+      width: auto; /* Solo lo necesario para el texto */
+    }
+    .agregar-btn:hover {
+      background-color: #4a148c;
+    }
+
+  </style>
+</head>
+<body>
+  <!-- Menú de navegación -->
+  <nav>
+    <ul>
+      <li><a href="inicio.html">Inicio</a></li>
+      <li><a href="Menu.html">Menú</a></li>
+      <li><a href="MetodoGrafico.html">Método Gráfico</a></li>
+      <li><a href="SimplexMaximizacion.html">Método Simplex Maximización</a></li>
+    </ul>
+  </nav>
+
+  <div class="container">
+    <h1>Método Simplex - Minimización</h1>
+
+    <label>Función Objetivo:</label>
+    <div class="linea">
+      Z =
+      <input type="number" id="obj_x1" placeholder="" /> X₁ +
+      <input type="number" id="obj_x2" placeholder="" /> X₂ +
+      <input type="number" id="obj_x3" placeholder="" /> X₃
+    </div>
+
+    <!-- Contenedor dinámico de restricciones -->
+    <div id="restricciones-container"></div>
+
+    <!-- Botón para agregar restricción -->
+    <button class="agregar-btn" onclick="agregarRestriccion()">Agregar Restricción</button>
+
+
+    <div class="condicion">X₁, X₂ ≥ 0</div>
+
+    <!-- Botón para resolver -->
+    <button onclick="Resolver()">Resolver Minimización</button>
+
+    <!-- Resultado -->
+    <div id="resultado">Resultado aquí...</div>
+    <div id="grafica" style="width: 100%; height: 500px; margin-top: 30px;"></div>
+  </div>
+
+  <script>
+    let contadorRestricciones = 0;
+
+    function agregarRestriccion() {
+      contadorRestricciones++;
+      const container = document.getElementById('restricciones-container');
+
+      const nuevaRestriccion = document.createElement('div');
+      nuevaRestriccion.id = `restriccion_${contadorRestricciones}`;
+      nuevaRestriccion.innerHTML = `
+        <label>Restricción ${contadorRestricciones}:</label>
+        <div class="linea">
+          <input type="number" id="r${contadorRestricciones}_x1" placeholder="" /> X₁ +
+          <input type="number" id="r${contadorRestricciones}_x2" placeholder="" /> X₂ +
+          <input type="number" id="r${contadorRestricciones}_x3" placeholder="" /> X₃
+          <select id="r${contadorRestricciones}_op">
+            <option value="<=">≤</option>
+            <option value=">=">≥</option>
+            <option value="=">=</option>
+          </select>
+          <input type="number" id="r${contadorRestricciones}_const" placeholder="Valor" />
+          <button type="button" class="eliminar-btn" onclick="eliminarRestriccion('restriccion_${contadorRestricciones}')">x</button>
+        </div>
+      `;
+      container.appendChild(nuevaRestriccion);
+    }
+
+    function eliminarRestriccion(id) {
+      const restriccion = document.getElementById(id);
+      if (restriccion) {
+        restriccion.remove();
+      }
+    }
+  </script>
+
+  <script src="SimplexMin.js"></script>
+</body>
+</html>

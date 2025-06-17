@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Menú Principal</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      font-family: 'Montserrat', sans-serif;
+      background: #f4f0fa;
+      color: #3c1361;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .container {
+      background: white;
+      max-width: 1000px;
+      width: 100%;
+      border-radius: 12px;
+      box-shadow: 0 8px 20px rgba(60, 19, 97, 0.15);
+      padding: 40px 30px;
+      text-align: center;
+    }
+    h1 {
+      font-weight: 700;
+      font-size: 2.2rem;
+      margin-bottom: 10px;
+      color: #000000;
+    }
+    p {
+      font-size: 1.1rem;
+      color: #460345;
+      margin-bottom: 30px;
+      line-height: 1.6;
+    }
+    .boton {
+      display: block;
+      background-color: #c36bd7;
+      color: white;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 8px;
+      margin: 10px auto;
+      font-size: 1rem;
+      cursor: pointer;
+      width: 80%;
+      max-width: 300px;
+      transition: background-color 0.3s ease;
+    }
+    .boton:hover {
+      background-color: #4a148c;
+    }
+    footer {
+      margin-top: 40px;
+      font-size: 0.9rem;
+      color: #999;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Calculadora de Programación Lineal</h1>
+    </h2>¿Qué hace este software?</h2>
+    <p>
+      Esta herramienta te permite <strong>analizar y resolver problemas de programación lineal</strong> mediante métodos visuales e intuitivos. Puedes ingresar tu función objetivo y un conjunto de restricciones para encontrar la <strong>mejor solución posible</strong>, ya sea de <strong>maximización</strong> o <strong>minimización</strong>, todo de forma gráfica o usando el <strong>método simplex</strong>.<br><br>
+    </p>
+
+    <button class="boton" onclick="irAGrafico()">Método Gráfico</button>
+    <button class="boton" onclick="irAMaxi()">Método Simplex - Maximización</button>
+    <button class="boton" onclick="irAMini()">Método Simplex - Minimización</button>
+
+    <footer>© 2025 Software de Programación Lineal - IPN UPIIZ</footer>
+  </div>
+
+  <script>
+    function irAGrafico() {
+      window.location.href = "MetodoGrafico.html";
+    }
+    function irAMaxi() {
+      window.location.href = "SimplexMaximizacion.html";
+    }
+    function irAMini() {
+      window.location.href = "SimplexMinimizacion.html";
+    }
+  </script>
+</body>
+</html>
